@@ -67,6 +67,8 @@ public final class ConfigurationPropertySources {
 	 * @param environment the source environment (must be an instance of
 	 * {@link ConfigurableEnvironment})
 	 * @see #get(Environment)
+	 *
+	 *  // TODO 看起来是支持动态刷新？
 	 */
 	public static void attach(Environment environment) {
 		Assert.isInstanceOf(ConfigurableEnvironment.class, environment);

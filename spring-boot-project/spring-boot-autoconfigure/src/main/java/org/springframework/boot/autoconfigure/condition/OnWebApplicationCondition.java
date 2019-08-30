@@ -86,14 +86,19 @@ class OnWebApplicationCondition extends FilteringSpringBootCondition {
 
 	@Override
 	public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
+		//  是否含有这个注解
 		boolean required = metadata.isAnnotated(ConditionalOnWebApplication.class.getName());
+
 		ConditionOutcome outcome = isWebApplication(context, metadata, required);
+		// 如果有指定注解，但是不匹配web，那么返回不匹配
 		if (required && !outcome.isMatch()) {
 			return ConditionOutcome.noMatch(outcome.getConditionMessage());
 		}
+		// 如果没有指定注解 但是逻辑匹配web 那么返回不匹配
 		if (!required && outcome.isMatch()) {
 			return ConditionOutcome.noMatch(outcome.getConditionMessage());
 		}
+		// 如果都不是那么则返回匹配
 		return ConditionOutcome.match(outcome.getConditionMessage());
 	}
 
@@ -109,6 +114,10 @@ class OnWebApplicationCondition extends FilteringSpringBootCondition {
 		}
 	}
 
+	/**
+	 * {@link #isReactiveWebApplication(ConditionContext)} 和 {@link #isServletWebApplication(ConditionContext)}
+	 * 的结合调用
+	 */
 	private ConditionOutcome isAnyWebApplication(ConditionContext context, boolean required) {
 		ConditionMessage.Builder message = ConditionMessage.forCondition(ConditionalOnWebApplication.class,
 				required ? "(required)" : "");
@@ -126,38 +135,50 @@ class OnWebApplicationCondition extends FilteringSpringBootCondition {
 
 	private ConditionOutcome isServletWebApplication(ConditionContext context) {
 		ConditionMessage.Builder message = ConditionMessage.forCondition("");
+		// 如果无法加载此类，则匹配
 		if (!ClassNameFilter.isPresent(SERVLET_WEB_APPLICATION_CLASS, context.getClassLoader())) {
 			return ConditionOutcome.noMatch(message.didNotFind("servlet web application classes").atAll());
 		}
+		// 如果在BeanFactory里面发现 Session Scope 那么，返回匹配
 		if (context.getBeanFactory() != null) {
 			String[] scopes = context.getBeanFactory().getRegisteredScopeNames();
 			if (ObjectUtils.containsElement(scopes, "session")) {
 				return ConditionOutcome.match(message.foundExactly("'session' scope"));
 			}
 		}
+		// 如果在应用环境中发现属于 ConfigurableWebEnvironment 的子类，则返回匹配
 		if (context.getEnvironment() instanceof ConfigurableWebEnvironment) {
 			return ConditionOutcome.match(message.foundExactly("ConfigurableWebEnvironment"));
 		}
+		// 如果是 ResourceLoader 是webApplicationContext 那么返回匹配
 		if (context.getResourceLoader() instanceof WebApplicationContext) {
 			return ConditionOutcome.match(message.foundExactly("WebApplicationContext"));
 		}
+		// 否则返回不匹配
 		return ConditionOutcome.noMatch(message.because("not a servlet web application"));
 	}
 
 	private ConditionOutcome isReactiveWebApplication(ConditionContext context) {
 		ConditionMessage.Builder message = ConditionMessage.forCondition("");
+		// 如果不能加载 WebFlux的 返回值对象，那么返回不匹配
 		if (!ClassNameFilter.isPresent(REACTIVE_WEB_APPLICATION_CLASS, context.getClassLoader())) {
 			return ConditionOutcome.noMatch(message.didNotFind("reactive web application classes").atAll());
 		}
+		// 如果 上下文环境是 ConfigurableReactiveWebEnvironment 那么返回匹配
 		if (context.getEnvironment() instanceof ConfigurableReactiveWebEnvironment) {
 			return ConditionOutcome.match(message.foundExactly("ConfigurableReactiveWebEnvironment"));
 		}
+		// 如果 上下文是 ReactiveWebApplicationContext 那么则匹配
 		if (context.getResourceLoader() instanceof ReactiveWebApplicationContext) {
 			return ConditionOutcome.match(message.foundExactly("ReactiveWebApplicationContext"));
 		}
+		// 如果都不是那么则不匹配
 		return ConditionOutcome.noMatch(message.because("not a reactive web application"));
 	}
 
+	/**
+	 *  推断注解上的 值
+	 */
 	private Type deduceType(AnnotatedTypeMetadata metadata) {
 		Map<String, Object> attributes = metadata.getAnnotationAttributes(ConditionalOnWebApplication.class.getName());
 		if (attributes != null) {

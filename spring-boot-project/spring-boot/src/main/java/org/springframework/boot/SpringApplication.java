@@ -296,21 +296,33 @@ public class SpringApplication {
 	 * @return a running {@link ApplicationContext}
 	 */
 	public ConfigurableApplicationContext run(String... args) {
+		// 计时器
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
 		ConfigurableApplicationContext context = null;
 		Collection<SpringBootExceptionReporter> exceptionReporters = new ArrayList<>();
 		configureHeadlessProperty();
+		// 通过读取 META-INF/spring.factories 获取 SpringApplicationRunListener 的多个实例
+		// 并且封装在SpringApplicationRunListener 的实例中
 		SpringApplicationRunListeners listeners = getRunListeners(args);
+		// 调用所有的 SpringApplicationRunListener#starting 方法
 		listeners.starting();
 		try {
+			// 封装 main 方法中的args参数
 			ApplicationArguments applicationArguments = new DefaultApplicationArguments(args);
+			// 获取环境并且对环境进行设置，这里会对SpringApplication中的实例，进行数据绑定，可能
+			// 会改变这个实例中的属性
 			ConfigurableEnvironment environment = prepareEnvironment(listeners, applicationArguments);
+			// 设置 spring.beaninfo.ignore 属性
 			configureIgnoreBeanInfo(environment);
+			// 打印banner
 			Banner printedBanner = printBanner(environment);
+			// 根据 webApplicationType 创建对应的 applicationContext
 			context = createApplicationContext();
+			// 获取META-INF/spring.factories 中的  SpringBootExceptionReporter 实例
 			exceptionReporters = getSpringFactoriesInstances(SpringBootExceptionReporter.class,
 					new Class[] { ConfigurableApplicationContext.class }, context);
+			//
 			prepareContext(context, environment, listeners, applicationArguments, printedBanner);
 			refreshContext(context);
 			afterRefresh(context, applicationArguments);
@@ -339,12 +351,25 @@ public class SpringApplication {
 	private ConfigurableEnvironment prepareEnvironment(SpringApplicationRunListeners listeners,
 			ApplicationArguments applicationArguments) {
 		// Create and configure the environment
+		// 推断或者获取环境对象
 		ConfigurableEnvironment environment = getOrCreateEnvironment();
+		// 配置环境中的  conversionService main#args参数 activeProfile
 		configureEnvironment(environment, applicationArguments.getSourceArgs());
+		// TODO 貌似是支持动态刷新
 		ConfigurationPropertySources.attach(environment);
+		// 调用 {org.springframework.boot.SpringApplicationRunListener#environmentPrepared} 方法
 		listeners.environmentPrepared(environment);
+		// 从环境中绑定 spring.main 开头的配置，到SpringApplication实例中
 		bindToSpringApplication(environment);
+		// 如果不是自定义环境
 		if (!this.isCustomEnvironment) {
+			// 检测实例化的环境和推断的环境是否需要转化一下，因为可能会自定义上下文类型
+			// 主要是上面调用的 bindToSpringApplication 方法可能会改变 webApplicationType
+			// 所以需要检测一下
+
+			// 可以看出，环境的类型主要根据 webApplicationType 进行实例化，而
+			// webApplicationType 的类型的设置优先级为：
+			// 环境中的设置(系统变量，或者配置文件) > 根据class推断的类型
 			environment = new EnvironmentConverter(getClassLoader()).convertEnvironmentIfNecessary(environment,
 					deduceEnvironmentClass());
 		}
@@ -352,6 +377,9 @@ public class SpringApplication {
 		return environment;
 	}
 
+	/**
+	 *  推断环境类型
+	 */
 	private Class<? extends StandardEnvironment> deduceEnvironmentClass() {
 		switch (this.webApplicationType) {
 		case SERVLET:
@@ -366,7 +394,10 @@ public class SpringApplication {
 	private void prepareContext(ConfigurableApplicationContext context, ConfigurableEnvironment environment,
 			SpringApplicationRunListeners listeners, ApplicationArguments applicationArguments, Banner printedBanner) {
 		context.setEnvironment(environment);
+		// 处理 SpringApplication 设置的 beanNameGenerator，resourceLoader
+		// 处理 beanFactory 的 ConversionService
 		postProcessApplicationContext(context);
+
 		applyInitializers(context);
 		listeners.contextPrepared(context);
 		if (this.logStartupInfo) {
@@ -412,6 +443,7 @@ public class SpringApplication {
 
 	private SpringApplicationRunListeners getRunListeners(String[] args) {
 		Class<?>[] types = new Class<?>[] { SpringApplication.class, String[].class };
+		// 读取 META-INF/spring.factories 文件中 key为 org.springframework.boot.SpringApplicationRunListener 的values，并且根据参数初始化
 		return new SpringApplicationRunListeners(logger,
 				getSpringFactoriesInstances(SpringApplicationRunListener.class, types, this, args));
 	}
@@ -420,6 +452,15 @@ public class SpringApplication {
 		return getSpringFactoriesInstances(type, new Class<?>[] {});
 	}
 
+	/**
+	 *  读取 META-INF/spring.factories 文件中，对应type的value ，并且实例化对象
+	 *
+	 * @param type 需要实例化的类
+	 * @param parameterTypes 实例化的类需要的参数类型
+	 * @param args 实例化的类的参数实例
+	 * @param <T>
+	 * @return
+	 */
 	private <T> Collection<T> getSpringFactoriesInstances(Class<T> type, Class<?>[] parameterTypes, Object... args) {
 		ClassLoader classLoader = getClassLoader();
 		// Use names and ensure unique to protect against duplicates
@@ -448,6 +489,9 @@ public class SpringApplication {
 		return instances;
 	}
 
+	/**
+	 *  推断 环境对象
+	 */
 	private ConfigurableEnvironment getOrCreateEnvironment() {
 		if (this.environment != null) {
 			return this.environment;
@@ -475,10 +519,13 @@ public class SpringApplication {
 	 */
 	protected void configureEnvironment(ConfigurableEnvironment environment, String[] args) {
 		if (this.addConversionService) {
+			// 获取 ConversionService 对象(类型转换对象，比如String 转 Date类型)
 			ConversionService conversionService = ApplicationConversionService.getSharedInstance();
 			environment.setConversionService((ConfigurableConversionService) conversionService);
 		}
+		// 配置main方法中的args参数，根据逻辑判断是否添加至程序环境中
 		configurePropertySources(environment, args);
+		// 配置环境中的activeProfile
 		configureProfiles(environment, args);
 	}
 
@@ -490,13 +537,17 @@ public class SpringApplication {
 	 * @see #configureEnvironment(ConfigurableEnvironment, String[])
 	 */
 	protected void configurePropertySources(ConfigurableEnvironment environment, String[] args) {
+		// 获取程序组合的环境变量
 		MutablePropertySources sources = environment.getPropertySources();
 		if (this.defaultProperties != null && !this.defaultProperties.isEmpty()) {
+			// 添加默认的环境变量
 			sources.addLast(new MapPropertySource("defaultProperties", this.defaultProperties));
 		}
+		// 如果需要将 main方法的args参数添加至springContext 中
 		if (this.addCommandLineProperties && args.length > 0) {
 			String name = CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME;
 			if (sources.contains(name)) {
+				// 如果存在则组合进去
 				PropertySource<?> source = sources.get(name);
 				CompositePropertySource composite = new CompositePropertySource(name);
 				composite.addPropertySource(
@@ -505,6 +556,7 @@ public class SpringApplication {
 				sources.replace(name, composite);
 			}
 			else {
+				// 否则添加至程序组合的环境变量
 				sources.addFirst(new SimpleCommandLinePropertySource(args));
 			}
 		}
@@ -518,6 +570,8 @@ public class SpringApplication {
 	 * @param args arguments passed to the {@code run} method
 	 * @see #configureEnvironment(ConfigurableEnvironment, String[])
 	 * @see org.springframework.boot.context.config.ConfigFileApplicationListener
+	 *
+	 *  配置环境中的激活配置，可以通过 {@link #additionalProfiles} 设置
 	 */
 	protected void configureProfiles(ConfigurableEnvironment environment, String[] args) {
 		Set<String> profiles = new LinkedHashSet<>(this.additionalProfiles);
@@ -525,6 +579,11 @@ public class SpringApplication {
 		environment.setActiveProfiles(StringUtils.toStringArray(profiles));
 	}
 
+	/**
+	 *  如果系统变量中没有设置 spring.beaninfo.ignore 那么将环境中的 spring.beaninfo.ignore 的value赋
+	 *  值给系统变量
+	 * @param environment
+	 */
 	private void configureIgnoreBeanInfo(ConfigurableEnvironment environment) {
 		if (System.getProperty(CachedIntrospectionResults.IGNORE_BEANINFO_PROPERTY_NAME) == null) {
 			Boolean ignore = environment.getProperty("spring.beaninfo.ignore", Boolean.class, Boolean.TRUE);
@@ -535,6 +594,8 @@ public class SpringApplication {
 	/**
 	 * Bind the environment to the {@link SpringApplication}.
 	 * @param environment the environment to bind
+	 *
+	 *             从环境中绑定 spring.main 开头的配置，到SpringApplication实例中
 	 */
 	protected void bindToSpringApplication(ConfigurableEnvironment environment) {
 		try {
@@ -552,6 +613,7 @@ public class SpringApplication {
 		ResourceLoader resourceLoader = (this.resourceLoader != null) ? this.resourceLoader
 				: new DefaultResourceLoader(getClassLoader());
 		SpringApplicationBannerPrinter bannerPrinter = new SpringApplicationBannerPrinter(resourceLoader, this.banner);
+		// log 打印还是 console打印
 		if (this.bannerMode == Mode.LOG) {
 			return bannerPrinter.print(environment, this.mainApplicationClass, logger);
 		}
@@ -594,10 +656,12 @@ public class SpringApplication {
 	 * @param context the application context
 	 */
 	protected void postProcessApplicationContext(ConfigurableApplicationContext context) {
+		// 如果设置了 beanNameGenerator 那么，注册进beanFactory
 		if (this.beanNameGenerator != null) {
 			context.getBeanFactory().registerSingleton(AnnotationConfigUtils.CONFIGURATION_BEAN_NAME_GENERATOR,
 					this.beanNameGenerator);
 		}
+		// 如果设置了 resourceLoader 那么，整合进 context
 		if (this.resourceLoader != null) {
 			if (context instanceof GenericApplicationContext) {
 				((GenericApplicationContext) context).setResourceLoader(this.resourceLoader);
@@ -606,6 +670,7 @@ public class SpringApplication {
 				((DefaultResourceLoader) context).setClassLoader(this.resourceLoader.getClassLoader());
 			}
 		}
+		// 添加 ConversionService 至 beanFactory
 		if (this.addConversionService) {
 			context.getBeanFactory().setConversionService(ApplicationConversionService.getSharedInstance());
 		}
