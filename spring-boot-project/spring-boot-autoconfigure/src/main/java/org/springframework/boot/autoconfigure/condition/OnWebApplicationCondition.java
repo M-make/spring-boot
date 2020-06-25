@@ -86,7 +86,7 @@ class OnWebApplicationCondition extends FilteringSpringBootCondition {
 
 	@Override
 	public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
-		//  是否含有这个注解
+		// 是否含有这个注解
 		boolean required = metadata.isAnnotated(ConditionalOnWebApplication.class.getName());
 		ConditionOutcome outcome = isWebApplication(context, metadata, required);
 		// 如果有指定注解，但是不匹配web，那么返回不匹配
@@ -112,9 +112,10 @@ class OnWebApplicationCondition extends FilteringSpringBootCondition {
 			return isAnyWebApplication(context, required);
 		}
 	}
+
 	/**
-	 * {@link #isReactiveWebApplication(ConditionContext)} 和 {@link #isServletWebApplication(ConditionContext)}
-	 * 的结合调用
+	 * {@link #isReactiveWebApplication(ConditionContext)} 和
+	 * {@link #isServletWebApplication(ConditionContext)} 的结合调用
 	 */
 	private ConditionOutcome isAnyWebApplication(ConditionContext context, boolean required) {
 		ConditionMessage.Builder message = ConditionMessage.forCondition(ConditionalOnWebApplication.class,
@@ -173,8 +174,9 @@ class OnWebApplicationCondition extends FilteringSpringBootCondition {
 		// 如果都不是那么则不匹配
 		return ConditionOutcome.noMatch(message.because("not a reactive web application"));
 	}
+
 	/**
-	 *  推断注解上的 值
+	 * 推断注解上的 值
 	 */
 	private Type deduceType(AnnotatedTypeMetadata metadata) {
 		Map<String, Object> attributes = metadata.getAnnotationAttributes(ConditionalOnWebApplication.class.getName());

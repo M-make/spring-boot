@@ -319,7 +319,7 @@ public class SpringApplication {
 			Banner printedBanner = printBanner(environment);
 			// 根据 webApplicationType 创建对应的 applicationContext
 			context = createApplicationContext();
-			// 获取META-INF/spring.factories 中的  SpringBootExceptionReporter 实例
+			// 获取META-INF/spring.factories 中的 SpringBootExceptionReporter 实例
 			exceptionReporters = getSpringFactoriesInstances(SpringBootExceptionReporter.class,
 					new Class[] { ConfigurableApplicationContext.class }, context);
 			prepareContext(context, environment, listeners, applicationArguments, printedBanner);
@@ -352,11 +352,12 @@ public class SpringApplication {
 		// Create and configure the environment
 		// 推断或者获取环境对象
 		ConfigurableEnvironment environment = getOrCreateEnvironment();
-		// 配置环境中的  conversionService main#args参数 activeProfile
+		// 配置环境中的 conversionService main#args参数 activeProfile
 		configureEnvironment(environment, applicationArguments.getSourceArgs());
 		// TODO 貌似是支持动态刷新
 		ConfigurationPropertySources.attach(environment);
-		// 调用 {org.springframework.boot.SpringApplicationRunListener#environmentPrepared} 方法
+		// 调用 {org.springframework.boot.SpringApplicationRunListener#environmentPrepared}
+		// 方法
 		listeners.environmentPrepared(environment);
 		// 从环境中绑定 spring.main 开头的配置，到SpringApplication实例中
 		bindToSpringApplication(environment);
@@ -375,8 +376,9 @@ public class SpringApplication {
 		ConfigurationPropertySources.attach(environment);
 		return environment;
 	}
+
 	/**
-	 *  推断环境类型
+	 * 推断环境类型
 	 */
 	private Class<? extends StandardEnvironment> deduceEnvironmentClass() {
 		switch (this.webApplicationType) {
@@ -440,7 +442,8 @@ public class SpringApplication {
 
 	private SpringApplicationRunListeners getRunListeners(String[] args) {
 		Class<?>[] types = new Class<?>[] { SpringApplication.class, String[].class };
-		// 读取 META-INF/spring.factories 文件中 key为 org.springframework.boot.SpringApplicationRunListener 的values，并且根据参数初始化
+		// 读取 META-INF/spring.factories 文件中 key为
+		// org.springframework.boot.SpringApplicationRunListener 的values，并且根据参数初始化
 		return new SpringApplicationRunListeners(logger,
 				getSpringFactoriesInstances(SpringApplicationRunListener.class, types, this, args));
 	}
@@ -448,9 +451,9 @@ public class SpringApplication {
 	private <T> Collection<T> getSpringFactoriesInstances(Class<T> type) {
 		return getSpringFactoriesInstances(type, new Class<?>[] {});
 	}
+
 	/**
-	 *  读取 META-INF/spring.factories 文件中，对应type的value ，并且实例化对象
-	 *
+	 * 读取 META-INF/spring.factories 文件中，对应type的value ，并且实例化对象
 	 * @param type 需要实例化的类
 	 * @param parameterTypes 实例化的类需要的参数类型
 	 * @param args 实例化的类的参数实例
@@ -484,8 +487,9 @@ public class SpringApplication {
 		}
 		return instances;
 	}
+
 	/**
-	 *  推断 环境对象
+	 * 推断 环境对象
 	 */
 	private ConfigurableEnvironment getOrCreateEnvironment() {
 		if (this.environment != null) {
@@ -573,9 +577,9 @@ public class SpringApplication {
 		profiles.addAll(Arrays.asList(environment.getActiveProfiles()));
 		environment.setActiveProfiles(StringUtils.toStringArray(profiles));
 	}
+
 	/**
-	 *  如果系统变量中没有设置 spring.beaninfo.ignore 那么将环境中的 spring.beaninfo.ignore 的value赋
-	 *  值给系统变量
+	 * 如果系统变量中没有设置 spring.beaninfo.ignore 那么将环境中的 spring.beaninfo.ignore 的value赋 值给系统变量
 	 * @param environment
 	 */
 	private void configureIgnoreBeanInfo(ConfigurableEnvironment environment) {
@@ -587,8 +591,8 @@ public class SpringApplication {
 
 	/**
 	 * Bind the environment to the {@link SpringApplication}.
-	 * @param environment the environment to bind
-	 *                    从环境中绑定 spring.main 开头的配置，到SpringApplication实例中
+	 * @param environment the environment to bind 从环境中绑定 spring.main
+	 * 开头的配置，到SpringApplication实例中
 	 */
 	protected void bindToSpringApplication(ConfigurableEnvironment environment) {
 		try {

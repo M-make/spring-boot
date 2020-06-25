@@ -1,3 +1,5 @@
+import io.spring.javaformat.gradle.CheckTask
+
 plugins {
 	id "org.jetbrains.kotlin.jvm" apply false // https://youtrack.jetbrains.com/issue/KT-30276
 }
@@ -22,4 +24,10 @@ allprojects {
 	configurations.all {
 		resolutionStrategy.cacheChangingModulesFor 60, "minutes"
 	}
+
+	// disable javadoc
+	tasks.withType(Javadoc).all { enabled = false }
+	tasks.withType(CheckTask).all { enabled = false }
+	tasks.withType(Checkstyle).all { enabled = false }
+
 }
