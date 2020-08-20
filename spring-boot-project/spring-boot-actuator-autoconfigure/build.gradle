@@ -167,32 +167,32 @@ tasks.withType(org.asciidoctor.gradle.jvm.AbstractAsciidoctorTask) {
 	inputs.dir("${buildDir}/generated-snippets")
 }
 
-asciidoctor {
-	configurations "asciidoctorExtensions"
-	sources {
-		include "index.adoc"
-	}
-}
+// asciidoctor {
+// 	configurations "asciidoctorExtensions"
+// 	sources {
+// 		include "index.adoc"
+// 	}
+// }
 
-asciidoctorPdf {
-	configurations "asciidoctorExtensions"
-	sources {
-		include "index.adoc"
-	}
-}
+// asciidoctorPdf {
+// 	configurations "asciidoctorExtensions"
+// 	sources {
+// 		include "index.adoc"
+// 	}
+// }
 
-task zip(type: Zip) {
-	dependsOn asciidoctor, asciidoctorPdf
-	duplicatesStrategy "fail"
-	from(asciidoctorPdf.outputDir) {
-		into "pdf"
-		rename { "spring-boot-actuator-web-api.pdf" }
-	}
-	from(asciidoctor.outputDir) {
-		into "html"
-	}
-}
+// task zip(type: Zip) {
+// 	dependsOn asciidoctor, asciidoctorPdf
+// 	duplicatesStrategy "fail"
+// 	from(asciidoctorPdf.outputDir) {
+// 		into "pdf"
+// 		rename { "spring-boot-actuator-web-api.pdf" }
+// 	}
+// 	from(asciidoctor.outputDir) {
+// 		into "html"
+// 	}
+// }
 
-artifacts {
-	documentation zip
-}
+// artifacts {
+// 	documentation zip
+// }

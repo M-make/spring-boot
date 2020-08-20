@@ -38,38 +38,38 @@ processResources {
 	inputs.property "version", project.version
 }
 
-task integrationTest {
-	dependsOn copyIntegrationTestSources, jar
-	def resultsDir = file("${buildDir}/test-results/integrationTest")
-	inputs.dir file("src/it")
-	inputs.files sourceSets.main.runtimeClasspath
-	outputs.dirs resultsDir
-	doLast {
-		ant.with {
-			taskdef(resource: "org/apache/ant/antunit/antlib.xml",
-					classpath: configurations.antUnit.asPath)
-			taskdef(resource: "org/apache/ivy/ant/antlib.xml",
-					classpath: configurations.antIvy.asPath)
-			taskdef(resource: "org/springframework/boot/ant/antlib.xml",
-					classpath: sourceSets.main.runtimeClasspath.asPath,
-					uri: "antlib:org.springframework.boot.ant")
-			ant.property(name: "ivy.class.path", value: configurations.antIvy.asPath)
-			ant.property(name: "antunit.class.path", value: configurations.antUnit.asPath)
-			antunit {
-				propertyset {
-					ant.propertyref(name: "build.compiler")
-					ant.propertyref(name: "antunit.class.path")
-					ant.propertyref(name: "ivy.class.path")
-				}
-				plainlistener()
-				file("${buildDir}/test-results/integrationTest").mkdirs()
-				xmllistener(toDir: resultsDir)
-				fileset(dir: "${buildDir}/it", includes: "**/build.xml")
-			}
-		}
-	}
-}
+// task integrationTest {
+// 	dependsOn copyIntegrationTestSources, jar
+// 	def resultsDir = file("${buildDir}/test-results/integrationTest")
+// 	inputs.dir file("src/it")
+// 	inputs.files sourceSets.main.runtimeClasspath
+// 	outputs.dirs resultsDir
+// 	doLast {
+// 		ant.with {
+// 			taskdef(resource: "org/apache/ant/antunit/antlib.xml",
+// 					classpath: configurations.antUnit.asPath)
+// 			taskdef(resource: "org/apache/ivy/ant/antlib.xml",
+// 					classpath: configurations.antIvy.asPath)
+// 			taskdef(resource: "org/springframework/boot/ant/antlib.xml",
+// 					classpath: sourceSets.main.runtimeClasspath.asPath,
+// 					uri: "antlib:org.springframework.boot.ant")
+// 			ant.property(name: "ivy.class.path", value: configurations.antIvy.asPath)
+// 			ant.property(name: "antunit.class.path", value: configurations.antUnit.asPath)
+// 			antunit {
+// 				propertyset {
+// 					ant.propertyref(name: "build.compiler")
+// 					ant.propertyref(name: "antunit.class.path")
+// 					ant.propertyref(name: "ivy.class.path")
+// 				}
+// 				plainlistener()
+// 				file("${buildDir}/test-results/integrationTest").mkdirs()
+// 				xmllistener(toDir: resultsDir)
+// 				fileset(dir: "${buildDir}/it", includes: "**/build.xml")
+// 			}
+// 		}
+// 	}
+// }
 
-check {
-	dependsOn integrationTest
-}
+// check {
+// 	dependsOn integrationTest
+// }

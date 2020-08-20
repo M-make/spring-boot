@@ -76,14 +76,14 @@ dependencies {
 	testRuntimeOnly("org.yaml:snakeyaml")
 }
 
-task syncIntTestDependencies(type: Sync) {
-	destinationDir = file("${buildDir}/dependencies")
-	from {
-		configurations.intTestDependencies
-	}
-	from jar
-}
+// task syncIntTestDependencies(type: Sync) {
+// 	destinationDir = file("${buildDir}/dependencies")
+// 	from {
+// 		configurations.intTestDependencies
+// 	}
+// 	from jar
+// }
 
-intTest {
-	dependsOn syncIntTestDependencies
-}
+// intTest {
+// 	dependsOn syncIntTestDependencies
+// }
